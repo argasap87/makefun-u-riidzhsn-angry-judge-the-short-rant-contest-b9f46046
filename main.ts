@@ -28,6 +28,16 @@ if (LINE.includes("\n") || LINE.includes("\r")) {
   process.exit(1);
 }
 
+// Reviser gate (second session, genuine addition): reject invisible control
+// and zero-width characters the newline guard cannot see — e.g. NUL, ESC,
+// tab, U+200B zero-width space, U+FEFF BOM. A stray invisible char would
+// survive the length/blank/newline checks yet corrupt the sealed text the
+// judge reads (and could silently inflate the char count).
+if (/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F\u200B-\u200F\u2028\u2029\uFEFF]/.test(LINE)) {
+  console.error("gate failed: line contains invisible control characters");
+  process.exit(1);
+}
+
 mkdirSync("/output", { recursive: true });
 writeFileSync("/output/entry.txt", LINE, "utf8");
 
